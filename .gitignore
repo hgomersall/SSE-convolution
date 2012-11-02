@@ -1,0 +1,9 @@
+*.pyc
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+Makefile
+*.so
+*.o
+*.swp
+test_convolve
