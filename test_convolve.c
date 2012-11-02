@@ -65,12 +65,11 @@ int main()
     for (int j=0; j<N_TESTS; j++){
         gettimeofday(&then, NULL);
 
-        //convolve_sse_in_aligned_split_kernel_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL,
-        //convolve_sse_in_aligned_fixed_kernel_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL,
+        convolve_sse_in_aligned_fixed_kernel_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL,
         //convolve_sse_in_aligned_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
         //convolve_sse_partial_unroll_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
         //convolve_sse_simple_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
-        convolve_naive_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
+        //convolve_naive_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
                     KERNEL_LENGTH, N_LOOPS);
 
         gettimeofday(&now, NULL);
