@@ -46,7 +46,8 @@ link_directories(${GLIB_LIBRARY_DIRS})
 set(CMAKE_CFLAGS "${CMAKE_CFLAGS} ${GLIB_CFLAGS}")
 set(CMAKE_CXXFLAGS "${CMAKE_CXXFLAGS} ${GLIB_CFLAGS}")
 
-add_library(convolve_funcs SHARED convolve.h convolve.c)
+add_library(convolve_funcs SHARED convolve.h convolve.c 
+    convolve_2d.h convolve_2d.c)
 
 set(_test_convolve_sources
     test_data.h          test_data.c

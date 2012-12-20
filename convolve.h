@@ -28,10 +28,10 @@
 #ifndef _CONVOLVE_H
 #define _CONVOLVE_H
 
-#ifdef SSE3
-#include <pmmintrin.h>
-#include <xmmintrin.h>
+#if defined SSE3 || defined AVX
+#include <immintrin.h>
 #endif
+
 
 /* A macro that outputs a wrapper for each of the convolution routines.
  * The macro passed a name conv_func will output a function called
@@ -43,6 +43,7 @@
  * conv_func(float* in, float* out, int length,
  *                    float* kernel, int kernel_length)
  * */
+#ifndef MULTIPLE_CONVOLVE
 #define MULTIPLE_CONVOLVE(FUNCTION_NAME) \
 int FUNCTION_NAME ## _multiple(float* in, float* out, int length, \
         float* kernel, int kernel_length, int N) \
@@ -53,6 +54,7 @@ int FUNCTION_NAME ## _multiple(float* in, float* out, int length, \
  \
     return 0; \
 }
+#endif
 
 int convolve_naive(float* in, float* out, int length,
         float* kernel, int kernel_length);
@@ -74,6 +76,21 @@ MULTIPLE_CONVOLVE(convolve_sse_in_aligned);
 int convolve_sse_in_aligned_fixed_kernel(float* in, float* out, int length,
         float* kernel, int kernel_length);
 MULTIPLE_CONVOLVE(convolve_sse_in_aligned_fixed_kernel);
+
+int convolve_sse_unrolled_avx_vector(float* in, float* out, int length,
+        float* kernel, int kernel_length);
+MULTIPLE_CONVOLVE(convolve_sse_unrolled_avx_vector);
+
+int convolve_sse_unrolled_vector(float* in, float* out, int length,
+        float* kernel, int kernel_length);
+MULTIPLE_CONVOLVE(convolve_sse_unrolled_vector);
+
+#endif
+
+#ifdef AVX
+int convolve_avx_unrolled_vector(float* in, float* out, int length,
+        float* kernel, int kernel_length);
+MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector);
 
 #endif
 

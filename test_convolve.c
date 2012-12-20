@@ -30,12 +30,16 @@
 #include <sys/time.h>
 
 #include "convolve.h"
+#include "convolve_2d.h"
+
 #include "test_data.h"
 
 #define INPUT_LENGTH 1024
 #define KERNEL_LENGTH 16
-#define N_LOOPS 1000
+#define N_LOOPS 100
 #define N_TESTS 10
+
+#define ROWS 128
 
 #define INPUT_ARRAY input_data_1024
 #define KERNEL kernel_16
@@ -54,7 +58,22 @@ long time_delta(struct timeval* now, struct timeval* then)
 int main()
 {
     float* test_output = malloc(
-            sizeof(float)*(INPUT_LENGTH-KERNEL_LENGTH+1));
+            sizeof(float)*(INPUT_LENGTH-KERNEL_LENGTH+1)*ROWS);
+
+    float* workspace = malloc(
+            sizeof(float)*(INPUT_LENGTH-KERNEL_LENGTH+1)*ROWS);
+
+    float* input_array;
+    if (ROWS > 1) {
+        input_array = malloc(sizeof(float)*(INPUT_LENGTH*ROWS));
+        for (int col=0; col<INPUT_LENGTH; col++){
+            for(int row=0; row<ROWS; row++){
+                input_array[row*INPUT_LENGTH + col] = INPUT_ARRAY[col];
+            }
+        }
+    } else {
+        input_array = INPUT_ARRAY;
+    }
 
     struct timeval now, then;
 
@@ -65,12 +84,13 @@ int main()
     for (int j=0; j<N_TESTS; j++){
         gettimeofday(&then, NULL);
 
-        convolve_sse_in_aligned_fixed_kernel_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL,
-        //convolve_sse_in_aligned_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
-        //convolve_sse_partial_unroll_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
-        //convolve_sse_simple_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
-        //convolve_naive_multiple(INPUT_ARRAY, test_output, INPUT_LENGTH, KERNEL, 
-                    KERNEL_LENGTH, N_LOOPS);
+        convolve_sse_2d_separable_multiple(input_array, test_output, workspace, 
+        //convolve_sse_in_aligned_fixed_kernel_multiple(INPUT_ARRAY, test_output,
+        //convolve_sse_in_aligned_multiple(INPUT_ARRAY, test_output,
+        //convolve_sse_partial_unroll_multiple(INPUT_ARRAY, test_output,
+        //convolve_sse_simple_multiple(INPUT_ARRAY, test_output,
+        //convolve_naive_multiple(INPUT_ARRAY, test_output,
+                    INPUT_LENGTH, ROWS, KERNEL, KERNEL_LENGTH, N_LOOPS);
 
         gettimeofday(&now, NULL);
         delta = ((float)time_delta(&now, &then))/N_LOOPS;
@@ -82,7 +102,7 @@ int main()
     printf("Lowest test time: %1.3f microseconds per loop.\n", 
             min_delta);
 
-    for (int i=0; i<INPUT_LENGTH-KERNEL_LENGTH+1; i++){
+    for (int i=0; i<(INPUT_LENGTH-KERNEL_LENGTH+1); i++){
         if (TEST_OUTPUT_CORRECT[i] != test_output[i]){
             g_error("Computed convolution is incorrect.");
             return(-1);

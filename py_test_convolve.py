@@ -33,7 +33,7 @@ def check_convolution(input_array, test_output, kernel):
 
     correct_output = numpy.convolve(input_array, kernel, mode='valid')
 
-    return numpy.alltrue(correct_output - test_output == 0.0)
+    return numpy.allclose(correct_output, test_output, rtol=1e-3)
 
 def get_function_wrapper(function_name, input_array, output_array, kernel,
         n_loops):
@@ -88,7 +88,8 @@ def get_function_wrapper(function_name, input_array, output_array, kernel,
     return function_wrapper
 
 timeit_vars = []
-lengths = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
+#lengths = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
+lengths = [1024]
 
 def time_convolutions():
     import timeit
@@ -98,7 +99,9 @@ def time_convolutions():
             'convolve_sse_simple_multiple',
             'convolve_sse_partial_unroll_multiple',
             'convolve_sse_in_aligned_multiple',
-            'convolve_sse_in_aligned_fixed_kernel_multiple']
+            'convolve_sse_in_aligned_fixed_kernel_multiple',
+            'convolve_sse_unrolled_avx_vector_multiple',
+            'convolve_sse_unrolled_vector_multiple']
 
 
     def make_setup_script(func):
@@ -134,6 +137,11 @@ def time_convolutions():
             time = min(timeit.repeat('function()', 
                 setup=make_setup_script(each_function), 
                 repeat=20, number=1))
+
+            print 'valid:', check_convolution(input_array, output_array, kernel)
+
+            # empty the output array
+            output_array[:] = 0
 
             times[k, l] = time/loops
 
