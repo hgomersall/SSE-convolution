@@ -89,7 +89,7 @@ def get_function_wrapper(function_name, input_array, output_array, kernel,
 
 timeit_vars = []
 #lengths = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
-lengths = [1024]
+lengths = [2048]
 
 def time_convolutions():
     import timeit
@@ -101,7 +101,9 @@ def time_convolutions():
             'convolve_sse_in_aligned_multiple',
             'convolve_sse_in_aligned_fixed_kernel_multiple',
             'convolve_sse_unrolled_avx_vector_multiple',
-            'convolve_sse_unrolled_vector_multiple']
+            'convolve_sse_unrolled_vector_multiple',
+            'convolve_avx_unrolled_vector_multiple',
+            'convolve_avx_unrolled_vector_partial_aligned_multiple']
 
 
     def make_setup_script(func):

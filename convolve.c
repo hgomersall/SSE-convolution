@@ -543,7 +543,7 @@ int convolve_avx_unrolled_vector(float* in, float* out,
     /* Create a set of 4 aligned arrays
      * Each array is offset by one sample from the one before
      */
-    for(int i=0; i < AVX_SIMD_LENGTH; i++){
+    for(int i=0; i < SSE_SIMD_LENGTH; i++){
         memcpy(in_aligned[i], (in+i), (length-i)*sizeof(float));
     }
 
@@ -556,17 +556,17 @@ int convolve_avx_unrolled_vector(float* in, float* out,
 
             int data_offset = i + k;
 
-            for (int l = 0; l < AVX_SIMD_LENGTH; l++){
+            for (int l = 0; l < SSE_SIMD_LENGTH; l++){
 
-                for (int m = 0; m < VECTOR_LENGTH; m+=AVX_SIMD_LENGTH) {
+                for (int m = 0; m < VECTOR_LENGTH; m+=SSE_SIMD_LENGTH) {
 
-                    data_block = _mm256_load_ps(
+                    data_block = _mm256_loadu_ps(
                             in_aligned[l] + data_offset + m);
                     prod = _mm256_mul_ps(kernel_reverse[k+l+m], data_block);
 
                     acc0 = _mm256_add_ps(acc0, prod);
 
-                    data_block = _mm256_load_ps(in_aligned[l] + data_offset 
+                    data_block = _mm256_loadu_ps(in_aligned[l] + data_offset 
                             + m + AVX_SIMD_LENGTH);
                     prod = _mm256_mul_ps(kernel_reverse[k+l+m], data_block);
 
@@ -589,5 +589,96 @@ int convolve_avx_unrolled_vector(float* in, float* out,
 
     return 0;
 }
+
+int convolve_avx_unrolled_vector_partial_aligned(float* in, float* out, 
+        int length, float* kernel, int kernel_length)
+{
+    float kernel_block[AVX_SIMD_LENGTH] __attribute__ (
+            (aligned (ALIGNMENT)));
+    float in_aligned[AVX_SIMD_LENGTH][length] __attribute__ (
+            (aligned (ALIGNMENT)));
+
+    __m256 kernel_reverse[KERNEL_LENGTH] __attribute__ (
+            (aligned (ALIGNMENT)));    
+    __m256 data_block __attribute__ ((aligned (ALIGNMENT)));
+
+    __m256 prod __attribute__ ((aligned (ALIGNMENT)));
+    __m256 acc0 __attribute__ ((aligned (ALIGNMENT)));
+    __m256 acc1 __attribute__ ((aligned (ALIGNMENT)));
+
+    // Repeat the kernel across the vector
+    for(int i=0; i<KERNEL_LENGTH; i++){
+        for(int j=0; j<AVX_SIMD_LENGTH; j++){
+            kernel_block[j] = kernel[KERNEL_LENGTH - i - 1];
+        }
+
+        kernel_reverse[i] = _mm256_load_ps(kernel_block);
+    }
+
+    /* Create a set of SSE_SIMD_LENGTH aligned arrays
+     * Each array is offset by one sample from the one before
+     */
+    for(int i=0; i < SSE_SIMD_LENGTH; i++){
+        memcpy(in_aligned[i], (in+i), (length-i)*sizeof(float));
+    }
+
+    for(int i=0; i<length-KERNEL_LENGTH; i+=VECTOR_LENGTH){
+
+        acc0 = _mm256_setzero_ps();
+        acc1 = _mm256_setzero_ps();
+
+        for(int k=0; k<KERNEL_LENGTH; k+=VECTOR_LENGTH){
+
+            int data_offset = i + k;
+
+            for (int l = 0; l < SSE_SIMD_LENGTH; l++){
+
+                for (int m = 0; m < VECTOR_LENGTH; m+=AVX_SIMD_LENGTH) {
+
+                    data_block = _mm256_load_ps(
+                            in_aligned[l] + data_offset + m);
+                    prod = _mm256_mul_ps(kernel_reverse[k+l+m], data_block);
+
+                    acc0 = _mm256_add_ps(acc0, prod);
+
+                    data_block = _mm256_load_ps(in_aligned[l] + data_offset 
+                            + m + AVX_SIMD_LENGTH);
+                    prod = _mm256_mul_ps(kernel_reverse[k+l+m], data_block);
+
+                    acc1 = _mm256_add_ps(acc1, prod);
+
+                    data_block = _mm256_loadu_ps(
+                            in_aligned[l] + data_offset + m + SSE_SIMD_LENGTH);
+                    prod = _mm256_mul_ps(
+                            kernel_reverse[k+l+m+SSE_SIMD_LENGTH], data_block);
+
+                    acc0 = _mm256_add_ps(acc0, prod);
+
+                    data_block = _mm256_loadu_ps(in_aligned[l] + data_offset 
+                            + m + SSE_SIMD_LENGTH + AVX_SIMD_LENGTH);
+                    prod = _mm256_mul_ps(
+                            kernel_reverse[k+l+m+SSE_SIMD_LENGTH], data_block);
+
+                    acc1 = _mm256_add_ps(acc1, prod);
+
+
+                }
+            }
+        }
+        _mm256_storeu_ps(out+i, acc0);
+        _mm256_storeu_ps(out+i+AVX_SIMD_LENGTH, acc1);
+
+    }
+
+    // Need to do the last value as a special case
+    int i = length - KERNEL_LENGTH;
+    out[i] = 0.0;
+    for(int k=0; k<KERNEL_LENGTH; k++){
+        out[i] += in_aligned[0][i+k] * kernel[KERNEL_LENGTH - k - 1];
+    }
+
+    return 0;
+}
+
 
 #endif

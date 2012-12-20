@@ -92,6 +92,11 @@ int convolve_avx_unrolled_vector(float* in, float* out, int length,
         float* kernel, int kernel_length);
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector);
 
+int convolve_avx_unrolled_vector_partial_aligned(
+        float* in, float* out, int length,
+        float* kernel, int kernel_length);
+MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_partial_aligned);
+
 #endif
 
 #endif /*Header guard*/
