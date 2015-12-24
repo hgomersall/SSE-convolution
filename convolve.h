@@ -94,6 +94,10 @@ int convolve_avx_unrolled_vector_partial_aligned(
         float* kernel, int kernel_length);
 MULTIPLE_CONVOLVE_PROTO(convolve_avx_unrolled_vector_partial_aligned);
 
+int convolve_avx_unrolled_vector_local_output(float* in, float* out, int length,
+        float* kernel, int kernel_length);
+MULTIPLE_CONVOLVE_PROTO(convolve_avx_unrolled_vector_local_output);
+
 #endif
 
 #endif /*Header guard*/

@@ -13,8 +13,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 # Magic to set GCC-specific compile flags (to turn on optimisation).
-set(GCC_FLAGS "-std=c99 -Wall -O3 -msse3 -mtune=core2")
+set(GCC_FLAGS "-std=c99 -Wall -O3 -msse3 -mavx -mtune=core-avx-i")
 add_definitions( -DSSE3 )
+add_definitions( -DAVX )
 
 if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${GCC_FLAGS}")
@@ -47,11 +48,11 @@ set(CMAKE_CFLAGS "${CMAKE_CFLAGS} ${GLIB_CFLAGS}")
 set(CMAKE_CXXFLAGS "${CMAKE_CXXFLAGS} ${GLIB_CFLAGS}")
 
 add_library(convolve_funcs SHARED convolve.h convolve.c 
-    convolve_2d.h convolve_2d.c)
+    convolve_2d.h convolve_2d.c multiple_convolve.c)
 
 set(_test_convolve_sources
     test_data.h          test_data.c
-    test_convolve.c
+    test_convolve.c      multiple_convolve.c
 )
 
 add_executable(test_convolve ${_test_convolve_sources})

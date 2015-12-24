@@ -67,5 +67,6 @@ MULTIPLE_CONVOLVE(convolve_sse_unrolled_vector);
 #ifdef AVX
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector);
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_partial_aligned);
+MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_local_output);
 
 #endif

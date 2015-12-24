@@ -28,12 +28,13 @@
 
 import numpy
 import ctypes
+from pretty_print_times import pretty_print_times, colour
 
 def check_convolution(input_array, test_output, kernel):
 
     correct_output = numpy.convolve(input_array, kernel, mode='valid')
 
-    return numpy.allclose(correct_output, test_output, rtol=1e-3)
+    return numpy.allclose(correct_output, test_output, rtol=1e-4, atol=1e-5)
 
 def get_function_wrapper(function_name, input_array, output_array, kernel,
         n_loops):
@@ -89,22 +90,21 @@ def get_function_wrapper(function_name, input_array, output_array, kernel,
 
 timeit_vars = []
 #lengths = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
-lengths = [2048]
+lengths = [256, 512, 1024, 2048, 4096, 8192]
+functions = [
+    'convolve_naive_multiple', 
+    'convolve_sse_simple_multiple',
+    'convolve_sse_partial_unroll_multiple',
+    'convolve_sse_in_aligned_multiple',
+    'convolve_sse_in_aligned_fixed_kernel_multiple',
+    'convolve_sse_unrolled_avx_vector_multiple',
+    'convolve_sse_unrolled_vector_multiple',
+    'convolve_avx_unrolled_vector_multiple',
+    'convolve_avx_unrolled_vector_local_output_multiple',
+    'convolve_avx_unrolled_vector_partial_aligned_multiple']
 
 def time_convolutions():
     import timeit
-
-    functions = [
-            'convolve_naive_multiple', 
-            'convolve_sse_simple_multiple',
-            'convolve_sse_partial_unroll_multiple',
-            'convolve_sse_in_aligned_multiple',
-            'convolve_sse_in_aligned_fixed_kernel_multiple',
-            'convolve_sse_unrolled_avx_vector_multiple',
-            'convolve_sse_unrolled_vector_multiple',
-            'convolve_avx_unrolled_vector_multiple',
-            'convolve_avx_unrolled_vector_partial_aligned_multiple']
-
 
     def make_setup_script(func):
 
@@ -124,7 +124,8 @@ def time_convolutions():
 
 
     kernel = numpy.float32(numpy.random.randn(16))
-    times = numpy.zeros((len(lengths), len(functions)))
+    times = numpy.zeros((len(functions), len(lengths)))
+    flops = numpy.zeros((len(functions), len(lengths)))
     loops = 1000
 
     for k, each_length in enumerate(lengths):
@@ -145,14 +146,22 @@ def time_convolutions():
             # empty the output array
             output_array[:] = 0
 
-            times[k, l] = time/loops
+            times[l, k] = time/loops
+            flops[l, k] = (len(kernel) * len(input_array) * loops)/time
 
-    return times
+    return times, flops
 
 
 if __name__ == '__main__':
     
-    times = time_convolutions()
+    times, flops = time_convolutions()
 
-    print times
+    # Chop off each "convolve_" from each function name
+    function_type = [each[9:] for each in functions]
+
+    print(colour('\nTime in seconds\n', 'red'))
+    pretty_print_times(times, lengths, function_type, highlight='min')
+
+    print(colour('\nFlops\n', 'red'))
+    pretty_print_times(flops, lengths, function_type, highlight='max')
     
