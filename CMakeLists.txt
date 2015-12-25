@@ -13,7 +13,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 
 # Magic to set GCC-specific compile flags (to turn on optimisation).
-set(GCC_FLAGS "-std=c99 -Wall -O3 -msse3 -mavx -mtune=core-avx-i")
+set(GCC_FLAGS "-std=c99 -Wall -O3 -msse3 -mavx -march=native")
 add_definitions( -DSSE3 )
 add_definitions( -DAVX )
 
