@@ -100,8 +100,12 @@ functions = [
     'convolve_sse_unrolled_avx_vector_multiple',
     'convolve_sse_unrolled_vector_multiple',
     'convolve_avx_unrolled_vector_multiple',
+    'convolve_avx_unrolled_vector_unaligned_multiple',    
+    'convolve_avx_unrolled_vector_m128_load_multiple',
+    'convolve_avx_unrolled_vector_aligned_multiple',    
     'convolve_avx_unrolled_vector_local_output_multiple',
-    'convolve_avx_unrolled_vector_partial_aligned_multiple']
+    'convolve_avx_unrolled_vector_partial_aligned_multiple'
+]
 
 def time_convolutions():
     import timeit
@@ -156,8 +160,8 @@ if __name__ == '__main__':
     
     times, flops = time_convolutions()
 
-    # Chop off each "convolve_" from each function name
-    function_type = [each[9:] for each in functions]
+    # Chop off each "convolve_"  and "_multiple" from each function name
+    function_type = [each[9:-9] for each in functions]
 
     print(colour('\nTime in seconds\n', 'red'))
     pretty_print_times(times, lengths, function_type, highlight='min')
