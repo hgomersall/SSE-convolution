@@ -565,6 +565,9 @@ int convolve_avx_unrolled_vector(float* in, float* out,
     return 0;
 }
 
+/* Like convolve_avx_unrolled_vector but without creating the 
+ * half alignment arrays.
+ * */
 int convolve_avx_unrolled_vector_unaligned(float* in, float* out, 
         int length, float* kernel, int kernel_length)
 {
@@ -626,8 +629,8 @@ int convolve_avx_unrolled_vector_unaligned(float* in, float* out,
     return 0;
 }
 
-/* Like avx_unrolled_vector but with the data loaded using the 
- *
+/* Like avx_unrolled_vector but with the data loaded using aligned SSE load
+ * instructions
  */
 int convolve_avx_unrolled_vector_m128_load(float* in, float* out, 
         int length, float* kernel, int kernel_length)

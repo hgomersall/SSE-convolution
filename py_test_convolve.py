@@ -92,19 +92,19 @@ timeit_vars = []
 #lengths = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
 lengths = [256, 512, 1024, 2048, 4096, 8192]
 functions = [
-    'convolve_naive_multiple', 
-    'convolve_sse_simple_multiple',
+#    'convolve_naive_multiple', 
+#    'convolve_sse_simple_multiple',
     'convolve_sse_partial_unroll_multiple',
     'convolve_sse_in_aligned_multiple',
-    'convolve_sse_in_aligned_fixed_kernel_multiple',
-    'convolve_sse_unrolled_avx_vector_multiple',
-    'convolve_sse_unrolled_vector_multiple',
+#    'convolve_sse_in_aligned_fixed_kernel_multiple',
+#    'convolve_sse_unrolled_avx_vector_multiple',
+#    'convolve_sse_unrolled_vector_multiple',
     'convolve_avx_unrolled_vector_multiple',
     'convolve_avx_unrolled_vector_unaligned_multiple',    
-    'convolve_avx_unrolled_vector_m128_load_multiple',
-    'convolve_avx_unrolled_vector_aligned_multiple',    
-    'convolve_avx_unrolled_vector_local_output_multiple',
-    'convolve_avx_unrolled_vector_partial_aligned_multiple'
+#    'convolve_avx_unrolled_vector_m128_load_multiple',
+#    'convolve_avx_unrolled_vector_aligned_multiple',    
+#    'convolve_avx_unrolled_vector_local_output_multiple',
+#    'convolve_avx_unrolled_vector_partial_aligned_multiple'
 ]
 
 def time_convolutions():
