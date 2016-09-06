@@ -93,6 +93,10 @@ int convolve_avx_unrolled_vector_unaligned(float* in, float* out, int length,
         float* kernel, int kernel_length);
 MULTIPLE_CONVOLVE_PROTO(convolve_avx_unrolled_vector_unaligned);
 
+int convolve_avx_unrolled_vector_unaligned_fma(float* in, float* out, 
+        int length, float* kernel, int kernel_length);
+MULTIPLE_CONVOLVE_PROTO(convolve_avx_unrolled_vector_unaligned_fma);
+
 int convolve_avx_unrolled_vector_m128_load(float* in, float* out, int length,
         float* kernel, int kernel_length);
 MULTIPLE_CONVOLVE_PROTO(convolve_avx_unrolled_vector_m128_load);

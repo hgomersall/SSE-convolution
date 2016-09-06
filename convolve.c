@@ -31,6 +31,7 @@
 
 #define SSE_SIMD_LENGTH 4
 #define AVX_SIMD_LENGTH 8
+#define KERNEL_LENGTH 16
 
 /* A set of convolution routines, all of which present the same interface
  * (albeit, with some of them having restrictions on the size and shape of 
@@ -271,7 +272,6 @@ int convolve_sse_in_aligned(float* in, float* out, int length,
 /* In this case, the kernel is assumed to be a fixed length, this
  * allows the compiler to do another level of loop unrolling.
  */
-#define KERNEL_LENGTH 16
 int convolve_sse_in_aligned_fixed_kernel(float* in, float* out, int length,
         float* kernel, int kernel_length)
 {
@@ -494,6 +494,8 @@ int convolve_sse_unrolled_vector(float* in, float* out,
 #endif
 
 #ifdef AVX
+#define VECTOR_LENGTH 16
+#define ALIGNMENT 32
 
 int convolve_avx_unrolled_vector(float* in, float* out, 
         int length, float* kernel, int kernel_length)
@@ -610,6 +612,71 @@ int convolve_avx_unrolled_vector_unaligned(float* in, float* out,
                     prod = _mm256_mul_ps(kernel_reverse[k+l+m], data_block);
 
                     acc1 = _mm256_add_ps(acc1, prod);
+
+                }
+            }
+        }
+        _mm256_storeu_ps(out+i, acc0);
+        _mm256_storeu_ps(out+i+AVX_SIMD_LENGTH, acc1);
+
+    }
+
+    // Need to do the last value as a special case
+    int i = length - KERNEL_LENGTH;
+    out[i] = 0.0;
+    for(int k=0; k<KERNEL_LENGTH; k++){
+        out[i] += in[i+k] * kernel[KERNEL_LENGTH - k - 1];
+    }
+
+    return 0;
+}
+
+/* Like convolve_avx_unrolled_vector_unaligned but using FMA
+ * */
+int convolve_avx_unrolled_vector_unaligned_fma(float* in, float* out, 
+        int length, float* kernel, int kernel_length)
+{
+
+    __m256 kernel_reverse[KERNEL_LENGTH] __attribute__ (
+            (aligned (ALIGNMENT)));    
+    __m256 data_block __attribute__ ((aligned (ALIGNMENT)));
+
+    __m256 acc0 __attribute__ ((aligned (ALIGNMENT)));
+    __m256 acc1 __attribute__ ((aligned (ALIGNMENT)));
+
+    // Repeat the kernel across the vector
+    for(int i=0; i<KERNEL_LENGTH; i++){
+        kernel_reverse[i] = _mm256_broadcast_ss(
+                &kernel[KERNEL_LENGTH - i - 1]);
+    }
+
+    for(int i=0; i<length-KERNEL_LENGTH; i+=VECTOR_LENGTH){
+
+        acc0 = _mm256_setzero_ps();
+        acc1 = _mm256_setzero_ps();
+
+        for(int k=0; k<KERNEL_LENGTH; k+=VECTOR_LENGTH){
+
+            int data_offset = i + k;
+
+            for (int l = 0; l < SSE_SIMD_LENGTH; l++){
+
+                for (int m = 0; m < VECTOR_LENGTH; m+=SSE_SIMD_LENGTH) {
+
+                    data_block = _mm256_loadu_ps(
+                            in + l + data_offset + m);
+
+                    //acc0 = kernel_reverse[k+l+m] * data_block + acc0;
+                    acc0 = _mm256_fmadd_ps(
+                            kernel_reverse[k+l+m], data_block, acc0);
+
+                    data_block = _mm256_loadu_ps(in + l + data_offset 
+                            + m + AVX_SIMD_LENGTH);
+
+                    //acc1 = kernel_reverse[k+l+m] * data_block + acc1;
+                    acc1 = _mm256_fmadd_ps(
+                           kernel_reverse[k+l+m], data_block, acc1);
+                    
 
                 }
             }

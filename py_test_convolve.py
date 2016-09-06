@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2012 Henry Gomersall <heng@cantab.net> 
+# Copyright (C) 2012 Henry Gomersall <heng@cantab.net>
 #
 # All rights reserved.
 #
@@ -24,7 +24,7 @@
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 # ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import numpy
 import ctypes
@@ -83,7 +83,7 @@ def get_function_wrapper(function_name, input_array, output_array, kernel,
     kernel_length = len(kernel)
 
     def function_wrapper():
-        c_function(input_pointer, output_pointer, length, kernel_pointer, 
+        c_function(input_pointer, output_pointer, length, kernel_pointer,
                 kernel_length, n_loops)
 
     return function_wrapper
@@ -92,19 +92,20 @@ timeit_vars = []
 #lengths = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
 lengths = [256, 512, 1024, 2048, 4096, 8192]
 functions = [
-#    'convolve_naive_multiple', 
-#    'convolve_sse_simple_multiple',
+    'convolve_naive_multiple',
+    'convolve_sse_simple_multiple',
     'convolve_sse_partial_unroll_multiple',
     'convolve_sse_in_aligned_multiple',
-#    'convolve_sse_in_aligned_fixed_kernel_multiple',
-#    'convolve_sse_unrolled_avx_vector_multiple',
-#    'convolve_sse_unrolled_vector_multiple',
+    'convolve_sse_in_aligned_fixed_kernel_multiple',
+    'convolve_sse_unrolled_avx_vector_multiple',
+    'convolve_sse_unrolled_vector_multiple',
     'convolve_avx_unrolled_vector_multiple',
-    'convolve_avx_unrolled_vector_unaligned_multiple',    
-#    'convolve_avx_unrolled_vector_m128_load_multiple',
-#    'convolve_avx_unrolled_vector_aligned_multiple',    
-#    'convolve_avx_unrolled_vector_local_output_multiple',
-#    'convolve_avx_unrolled_vector_partial_aligned_multiple'
+    'convolve_avx_unrolled_vector_unaligned_multiple',
+    'convolve_avx_unrolled_vector_unaligned_fma_multiple',
+    'convolve_avx_unrolled_vector_m128_load_multiple',
+    'convolve_avx_unrolled_vector_aligned_multiple',
+    'convolve_avx_unrolled_vector_local_output_multiple',
+    'convolve_avx_unrolled_vector_partial_aligned_multiple'
 ]
 
 def time_convolutions():
@@ -139,25 +140,25 @@ def time_convolutions():
 
         for l, each_function in enumerate(functions):
 
-            print each_function, each_length
+            print(each_function, each_length)
 
-            time = min(timeit.repeat('function()', 
-                setup=make_setup_script(each_function), 
+            time = min(timeit.repeat('function()',
+                setup=make_setup_script(each_function),
                 repeat=20, number=1))
 
-            print 'valid:', check_convolution(input_array, output_array, kernel)
+            print('valid:', check_convolution(input_array, output_array, kernel))
 
             # empty the output array
             output_array[:] = 0
 
             times[l, k] = time/loops
-            flops[l, k] = (len(kernel) * len(input_array) * loops)/time
+            flops[l, k] = (len(kernel) * len(output_array) * loops)/time
 
     return times, flops
 
 
 if __name__ == '__main__':
-    
+
     times, flops = time_convolutions()
 
     # Chop off each "convolve_"  and "_multiple" from each function name
@@ -168,4 +169,4 @@ if __name__ == '__main__':
 
     print(colour('\nFlops\n', 'red'))
     pretty_print_times(flops, lengths, function_type, highlight='max')
-    
+

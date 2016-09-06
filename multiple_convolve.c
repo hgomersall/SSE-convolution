@@ -67,6 +67,7 @@ MULTIPLE_CONVOLVE(convolve_sse_unrolled_vector);
 #ifdef AVX
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector);
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_unaligned);
+MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_unaligned_fma);
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_m128_load);
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_partial_aligned);
 MULTIPLE_CONVOLVE(convolve_avx_unrolled_vector_aligned);
